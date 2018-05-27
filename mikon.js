@@ -90,7 +90,7 @@ mqttClient.on('message', (topic, message) => {
 	if ((currentTime - lastReadTime) > readInterval) {
 		lastReadTime = currentTime;
 		energyWh = energyWh + ( Number(message.toString()) / 3600 );
-		energiRef.set(energyWh.toFixed(3));
+		energiRef.set(energyWh.toFixed(4));
 		dayaRef.child(Math.floor((new Date).getTime()/1000)).set(message.toString());
 	}
 
