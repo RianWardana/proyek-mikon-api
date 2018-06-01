@@ -61,7 +61,7 @@ var checkBody = function() {
 
 
 /////////////////////////////////// handle request /////////////////////////////////////
-app.post('/mikon/setWh', (req, res) => {
+app.post('/mikon-api/setWh', (req, res) => {
 	var {Wh} = req.body;
 	checkBody(Wh).then(() => {
 		var setWh = Number(Wh);
