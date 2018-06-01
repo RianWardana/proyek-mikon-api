@@ -21,6 +21,11 @@ var database = firebaseAdmin.database();
 var dayaRef = database.ref('daya');
 var energiRef = database.ref('energi');
 
+var energyWh = 0.0;
+energiRef.on('value', data => {
+	energyWh = Number(data.val());
+});
+
 
 
 /////////////////////////////////// setup koneksi MQTT //////////////////////////////////
@@ -56,23 +61,11 @@ var checkBody = function() {
 
 
 /////////////////////////////////// handle request /////////////////////////////////////
-app.post('/ecg/signals', (req, res) => {
-	var {signals} = req.body;
-	checkBody(signals).then(() => {
-		var signalsArray = JSON.parse(signals);
-		// console.log(signalsArray);
-		ecgRef.child(Math.floor((new Date).getTime()/1000)).set(signalsArray);
-		// signalsArray.forEach(signal => {
-		// 	console.log(signal);
-		// });
-		res.send('OK');
-	}).catch(msg => res.send(msg));
-});
-
-app.post('/ecg/bpm', (req, res) => {
-	var {bpm} = req.body;
-	checkBody(bpm).then(() => {
-		bpmRef.child(Math.floor((new Date).getTime()/1000)).set(bpm);
+app.post('/mikon/setWh', (req, res) => {
+	var {Wh} = req.body;
+	checkBody(Wh).then(() => {
+		var setWh = Number(Wh);
+		energiRef.set(setWh);
 		res.send('OK');
 	}).catch(msg => res.send(msg));
 });
@@ -81,15 +74,16 @@ app.post('/ecg/bpm', (req, res) => {
 
 var readInterval = 500;
 var lastReadTime = Math.floor((new Date).getTime());
-var energyWh = 0;
 
 /////////////////////////////// MQTT incoming message ///////////////////////////////////
 mqttClient.on('message', (topic, message) => {
 	var currentTime = Math.floor((new Date).getTime());
+	var payload = message.toString();
+	var number = Number(payload);
 
 	if ((currentTime - lastReadTime) > readInterval) {
 		lastReadTime = currentTime;
-		energyWh = energyWh + ( Number(message.toString()) / 3600 );
+		energyWh = energyWh + (number > 0 ? number/3600 : 0);
 		energiRef.set(energyWh.toFixed(4));
 		dayaRef.child(Math.floor((new Date).getTime()/1000)).set(message.toString());
 	}
