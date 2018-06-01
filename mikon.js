@@ -65,6 +65,7 @@ app.post('/mikon/setWh', (req, res) => {
 	var {Wh} = req.body;
 	checkBody(Wh).then(() => {
 		var setWh = Number(Wh);
+		energyWh = setWh;
 		energiRef.set(setWh);
 		res.send('OK');
 	}).catch(msg => res.send(msg));
