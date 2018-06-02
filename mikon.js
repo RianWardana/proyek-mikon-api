@@ -19,11 +19,23 @@ firebaseAdmin.initializeApp({
 
 var database = firebaseAdmin.database();
 var dayaRef = database.ref('daya');
+var batasDayaRef = database.ref('batasDaya');
 var energiRef = database.ref('energi');
+var batasEnergiRef = database.ref('batasEnergi');
 
 var energyWh = 0.0;
 energiRef.on('value', data => {
 	energyWh = Number(data.val());
+});
+
+var batasDaya = 1000.0;
+batasDayaRef.on('value', data => {
+	batasDaya = Number(data.val());
+});
+
+var batasEnergi = 1000.0;
+batasEnergiRef.on('value', data => {
+	batasEnergi = Number(data.val());
 });
 
 
@@ -73,7 +85,7 @@ app.post('/mikon-api/setWh', (req, res) => {
 
 
 
-var readInterval = 500;
+var readInterval = 600;
 var lastReadTime = Math.floor((new Date).getTime());
 
 /////////////////////////////// MQTT incoming message ///////////////////////////////////
@@ -87,6 +99,10 @@ mqttClient.on('message', (topic, message) => {
 		energyWh = energyWh + (number > 0 ? number/3600 : 0);
 		energiRef.set(energyWh.toFixed(4));
 		dayaRef.child(Math.floor((new Date).getTime()/1000)).set(message.toString());
+
+		if ((number > batasDaya) || (energyWh > batasEnergi)) {
+			mqttClient.publish('mikon/fromServer', '0');
+		}
 	}
 
 	else return;
